@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +31,32 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Transactional(readOnly = true)
-    public List<CategoryResponseDto> findAll() {
-        List<Category> categories = categoryRepository.findAll();
-        return categories.stream().map(categoryMapper::toResponseDto).toList();
+    public Page<CategoryResponseDto> findAll(int page, int size, String sortField, Sort.Direction sortDirection) {
+        PageRequest pageRequest = PageRequest.of(page, size, sortDirection, sortField);
+
+        Page<Category> all = categoryRepository.findAll(pageRequest);
+
+        List<CategoryResponseDto> responseDtoList = categoryMapper.toResponseDtoList(all.getContent());
+
+        return new PageImpl<>(responseDtoList, pageRequest, all.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDto> findAllNames() {
+        return categoryRepository.findAllNames().stream()
+                .map(v -> new CategoryResponseDto(v.getIdentifier(), v.getName())).toList();
     }
 
     public CategoryResponseDto getById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CustomNotFoundException(Category.class, id));
+
+        return categoryMapper.toResponseDto(category);
+    }
+
+    public CategoryResponseDto getByName(String name) {
+        Category category = categoryRepository.findByName(name)
+                .orElseThrow(() -> new CustomNotFoundException(Category.class, name));
 
         return categoryMapper.toResponseDto(category);
     }
@@ -67,7 +89,7 @@ public class CategoryService {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("ID").append(",").append("NAME").append("\n");
         for (Category category : categories) {
-            stringBuilder.append(category.getId()).append(",").append(category.getName()).append("\n");
+            stringBuilder.append(category.getIdentifier()).append(",").append(category.getName()).append("\n");
         }
         byte[] bytes;
         try (FileWriter fileWriter = new FileWriter("categories.csv")) {

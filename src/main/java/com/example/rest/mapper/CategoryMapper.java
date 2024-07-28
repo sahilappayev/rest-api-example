@@ -2,23 +2,31 @@ package com.example.rest.mapper;
 
 import com.example.rest.dto.CategoryResponseDto;
 import com.example.rest.entity.Category;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 
-@Component
-public class CategoryMapper {
+@Mapper(unmappedSourcePolicy = ReportingPolicy.IGNORE,
+        unmappedTargetPolicy = ReportingPolicy.WARN,
+        componentModel = MappingConstants.ComponentModel.SPRING)
+public interface CategoryMapper {
 
-    public Category toEntity(String name) {
-        Category category = new Category();
-        category.setName(name);
-        return category;
+    Category toEntity(String name);
+
+    //    @Mapping(target = "categoryName", expression = "java(getCategoryName(category))")
+    @Mapping(target = "categoryName", source = "category", qualifiedByName = "name")
+    @Mapping(target = "id", source = "identifier")
+    CategoryResponseDto toResponseDto(Category category);
+
+
+    @Named("name")
+    default String getCategoryName(Category category) {
+        return category.getName();
     }
 
-    public CategoryResponseDto toResponseDto(Category category) {
-        CategoryResponseDto categoryResponseDto = new CategoryResponseDto();
-        categoryResponseDto.setId(category.getId());
-        categoryResponseDto.setName(category.getName());
-        return categoryResponseDto;
-    }
-
+    List<CategoryResponseDto> toResponseDtoList(List<Category> categories);
 
 }

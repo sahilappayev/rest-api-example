@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,8 +34,16 @@ public class CategoryController {
 
     @GetMapping(consumes = MediaType.ALL_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<CategoryResponseDto> getCategories() {
-        return categoryService.findAll();
+    public Page<CategoryResponseDto> getCategories(@RequestParam int page,
+                                                   @RequestParam int size,
+                                                   @RequestParam String sortField,
+                                                   @RequestParam Sort.Direction sortDirection) {
+        return categoryService.findAll(page, size, sortField, sortDirection);
+    }
+
+    @GetMapping("/names")
+    public List<CategoryResponseDto> getCategoryNames() {
+        return categoryService.findAllNames();
     }
 
     // categories?id=5&name=sahil&
@@ -43,6 +53,11 @@ public class CategoryController {
     public ResponseEntity<CategoryResponseDto> getCategoryById(@PathVariable Long id) {
 //        return categoryService.getById(id);
         return ResponseEntity.ok(categoryService.getById(id));
+    }
+
+    @GetMapping("/by-name")
+    public ResponseEntity<CategoryResponseDto> getCategoryByName(@RequestParam String name) {
+        return ResponseEntity.ok(categoryService.getByName(name));
     }
 
     @DeleteMapping("/{categoryId}")
