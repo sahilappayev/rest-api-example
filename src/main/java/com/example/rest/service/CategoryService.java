@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -32,12 +34,13 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public Page<CategoryResponseDto> findAll(int page, int size, String sortField, Sort.Direction sortDirection) {
+        log.info("findAll started");
         PageRequest pageRequest = PageRequest.of(page, size, sortDirection, sortField);
 
         Page<Category> all = categoryRepository.findAll(pageRequest);
 
         List<CategoryResponseDto> responseDtoList = categoryMapper.toResponseDtoList(all.getContent());
-
+        log.info("findAll finished");
         return new PageImpl<>(responseDtoList, pageRequest, all.getTotalElements());
     }
 
@@ -47,10 +50,12 @@ public class CategoryService {
                 .map(v -> new CategoryResponseDto(v.getIdentifier(), v.getName())).toList();
     }
 
+    @Transactional(readOnly = true)
     public CategoryResponseDto getById(Long id) {
+        log.info("getById started");
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CustomNotFoundException(Category.class, id));
-
+        log.info("getById finished");
         return categoryMapper.toResponseDto(category);
     }
 

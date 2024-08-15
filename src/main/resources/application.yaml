@@ -8,9 +8,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate.format_sql: true
     open-in-view: false
+
+  security:
+    user:
+      name: sahil
+      password: 12345
+
 app:
   version: 1.0.0

@@ -3,6 +3,7 @@ package com.example.rest.controller;
 import com.example.rest.dto.CategoryRequestDto;
 import com.example.rest.dto.CategoryResponseDto;
 import com.example.rest.service.CategoryService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
@@ -30,12 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/categories")
 public class CategoryController {
 
+    // HTTP REQUEST:  url, query param, request body, request headers
+    // HTTP RESPONSE:   http status, response body, response headers
     private final CategoryService categoryService;
 
     @GetMapping(consumes = MediaType.ALL_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<CategoryResponseDto> getCategories(@RequestParam int page,
-                                                   @RequestParam int size,
+    public Page<CategoryResponseDto> getCategories(@RequestParam(defaultValue = "0") @Parameter(description = "Sehifenin sayi, 0-dan bashlamaqla") int page,
+                                                   @RequestParam(defaultValue = "5") @Parameter(description = "Her sehifede olan elementlerein sayi, 0-dan bashlamaqla") int size,
                                                    @RequestParam String sortField,
                                                    @RequestParam Sort.Direction sortDirection) {
         return categoryService.findAll(page, size, sortField, sortDirection);
