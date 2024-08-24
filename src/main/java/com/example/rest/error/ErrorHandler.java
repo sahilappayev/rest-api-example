@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -55,9 +56,9 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({ConstraintViolationException.class})
     public ErrorResponse handleHandlerMethodValidationException(ConstraintViolationException ex,
-                                                               HttpServletRequest request) {
+                                                                HttpServletRequest request) {
         List<String> errors = ex.getConstraintViolations().stream()
-                .map(validation ->  {
+                .map(validation -> {
                     // create.name ->  [create, name]
                     String[] split = validation.getPropertyPath().toString().split("[.]");
                     return split[split.length - 1] + " - " + validation.getMessage();
@@ -67,6 +68,18 @@ public class ErrorHandler {
         return ErrorResponse.builder().timestamp(LocalDateTime.now())
                 .status(HttpStatus.NOT_FOUND)
                 .errors(errors)
+                .path(request.getServletPath())
+                .build();
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAuthorizationDeniedException(AuthorizationDeniedException ex,
+                                                            HttpServletRequest request) {
+        log.error(ex.getMessage(), ex);
+        return ErrorResponse.builder().timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN)
+                .errors(List.of(ex.getMessage()))
                 .path(request.getServletPath())
                 .build();
     }

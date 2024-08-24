@@ -4,15 +4,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -20,9 +22,10 @@ public class SecurityConfig {
         return security
                 .authorizeHttpRequests(req ->
                         req
+                                .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/categories", "/v3/api-docs/**", "/swagger-ui/**",
                                         "/swagger-ui.html").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/categories/{id}", "/categories/names").hasRole("USER")
+//                                .requestMatchers(HttpMethod.GET, "/categories/{id}", "/categories/names").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.PUT, "/categories/{id}").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/categories/{id}").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/categories").hasRole("ADMIN")
@@ -53,7 +56,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
 
