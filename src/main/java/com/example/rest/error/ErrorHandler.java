@@ -1,5 +1,7 @@
 package com.example.rest.error;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
@@ -80,6 +82,30 @@ public class ErrorHandler {
         return ErrorResponse.builder().timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN)
                 .errors(List.of(ex.getMessage()))
+                .path(request.getServletPath())
+                .build();
+    }
+
+    @ExceptionHandler(UnAuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleUnAuthenticationException(UnAuthenticationException ex,
+                                                         HttpServletRequest request) {
+        log.error(ex.getMessage(), ex);
+        return ErrorResponse.builder().timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED)
+                .errors(List.of(ex.getMessage()))
+                .path(request.getServletPath())
+                .build();
+    }
+
+    @ExceptionHandler({ExpiredJwtException.class, SignatureException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleExpiredJwtException(Exception ex,
+                                                   HttpServletRequest request) {
+        log.error(ex.getMessage(), ex);
+        return ErrorResponse.builder().timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED)
+                .errors(List.of("Invalid JWT token"))
                 .path(request.getServletPath())
                 .build();
     }
