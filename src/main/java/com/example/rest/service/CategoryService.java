@@ -56,7 +56,27 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CustomNotFoundException(Category.class, id));
         log.info("getById finished");
-        return categoryMapper.toResponseDto(category);
+
+        Category category1 = new Category();
+        category1.setIdentifier(category.getIdentifier());
+        category1.setName(category.getName());
+
+//        CategoryResponseDto responseDto = categoryMapper.toResponseDto(category1);
+
+        CategoryResponseDto responseDto = StaticService.toCategoryResponseDto(category1);
+
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto();
+        categoryResponseDto.setCategoryName(responseDto.getCategoryName());
+        categoryResponseDto.setId(responseDto.getId());
+
+        return categoryResponseDto;
+    }
+
+    @Transactional(readOnly = true)
+    public Category findById(Long id) {
+        log.info("findById started");
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CustomNotFoundException(Category.class, id));
     }
 
     public CategoryResponseDto getByName(String name) {
@@ -66,8 +86,11 @@ public class CategoryService {
         return categoryMapper.toResponseDto(category);
     }
 
+    @Transactional
     public void delete(Long id) {
-        categoryRepository.deleteById(id);
+//        categoryRepository.deleteById(id);
+        Category category = findById(id);
+        categoryRepository.delete(category);
     }
 
     public CategoryResponseDto create(String name) {
